@@ -59,10 +59,10 @@ body {
 }
 
 #titlebarTitle {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: 0.5px;
+  height: 24px;
+  width: auto;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 #titlebarControls {
