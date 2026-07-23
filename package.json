@@ -12,7 +12,7 @@
     "appId": "com.xnote.app",
     "productName": "xnote",
     "directories": {
-      "output": "dist"
+      "output": "dist_v1.1.2"
     },
     "files": [
       "main.js",
