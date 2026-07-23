@@ -3,11 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
   <title>xnote</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="dark">
+  <div id="titlebar">
+    <span id="titlebarTitle">xnote</span>
+    <div id="titlebarControls">
+      <button class="titlebar-btn" id="minBtn">
+        <svg width="14" height="14" viewBox="0 0 14 14"><line x1="2" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+      <button class="titlebar-btn" id="maxBtn">
+        <svg id="maxIcon" width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+        <svg id="restoreIcon" width="14" height="14" viewBox="0 0 14 14" style="display:none"><rect x="3.5" y="1.5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M3.5 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-1" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+      </button>
+      <button class="titlebar-btn" id="closeBtn">
+        <svg width="14" height="14" viewBox="0 0 14 14"><line x1="2.5" y1="2.5" x2="11.5" y2="11.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="11.5" y1="2.5" x2="2.5" y2="11.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
   <div id="app">
     <main>
       <aside id="sidebar">

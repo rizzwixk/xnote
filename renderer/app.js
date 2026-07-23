@@ -23,29 +23,32 @@
   let themeMode = 'dark';
 
   function applyTheme(animate) {
-    const app = document.getElementById('app');
+    const isDark = themeMode === 'dark';
 
     function doSwitch() {
-      const isDark = themeMode === 'dark';
       document.body.classList.toggle('dark', isDark);
       document.body.classList.toggle('light', !isDark);
-      if (animate && animReady) {
-        if (isDark) {
-          anim.setDirection(-1);
-          anim.goToAndPlay(30, true);
-        } else {
-          anim.setDirection(1);
-          anim.goToAndPlay(0, true);
-        }
-      } else if (animReady) {
-        anim.goToAndStop(isDark ? 0 : 30, true);
-      }
-      app.style.opacity = '1';
     }
 
-    if (animate) {
-      app.style.opacity = '0';
-      setTimeout(doSwitch, 150);
+    if (animate && animReady) {
+      let switched = false;
+      function onEnterFrame(e) {
+        const frame = Math.round(e.currentTime);
+        const trigger = isDark ? frame <= 1 : frame >= 54;
+        if (trigger && !switched) {
+          switched = true;
+          anim.removeEventListener('enterFrame', onEnterFrame);
+          doSwitch();
+        }
+      }
+      anim.addEventListener('enterFrame', onEnterFrame);
+      if (isDark) {
+        anim.setDirection(-1);
+        anim.goToAndPlay(60, true);
+      } else {
+        anim.setDirection(1);
+        anim.goToAndPlay(0, true);
+      }
     } else {
       doSwitch();
     }
@@ -61,7 +64,7 @@
     editorStatus.textContent = text;
   }
 
-  function renderNoteList() {
+  function renderNoteList(animate) {
     const frag = document.createDocumentFragment();
     for (const note of notes) {
       const li = document.createElement('li');
@@ -87,7 +90,9 @@
     }
     noteList.innerHTML = '';
     noteList.appendChild(frag);
-    refreshNoteAnimations();
+    if (animate !== false) {
+      refreshNoteAnimations();
+    }
   }
 
   function updateActiveNoteItem() {
@@ -109,6 +114,7 @@
       refreshAnimTimer = null;
       const items = noteList.querySelectorAll('.note-item');
       for (let i = 0; i < items.length; i++) {
+        items[i].classList.add('animate');
         items[i].style.animation = 'none';
         items[i].offsetHeight;
         items[i].style.animation = '';
@@ -117,7 +123,7 @@
     }, 20);
   }
 
-  function selectNote(id) {
+  function selectNote(id, animate) {
     if (id === activeNoteId) return;
     saveCurrentNoteImmediate();
     activeNoteId = id;
@@ -130,7 +136,7 @@
       contentInput.value = '';
     }
     reanimateEditor();
-    renderNoteList();
+    renderNoteList(animate);
     setStatus('');
   }
 
@@ -179,6 +185,10 @@
     });
   }
 
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+  }
+
   function createNewNote() {
     saveCurrentNoteImmediate();
     const note = {
@@ -193,7 +203,7 @@
     titleInput.value = '';
     contentInput.value = '';
     reanimateEditor();
-    renderNoteList();
+    renderNoteList(false);
     titleInput.focus();
     queueFileSave();
     setStatus('New note');
@@ -209,13 +219,13 @@
       contentInput.value = '';
       if (notes.length > 0) {
         const nextIdx = Math.min(idx, notes.length - 1);
-        selectNote(notes[nextIdx].id);
+        selectNote(notes[nextIdx].id, false);
       } else {
-        renderNoteList();
+        renderNoteList(false);
         setStatus('');
       }
     } else {
-      renderNoteList();
+      renderNoteList(false);
     }
     queueFileSave();
   }
@@ -224,12 +234,25 @@
     newNoteBtn.addEventListener('click', createNewNote);
     themeToggle.addEventListener('click', toggleTheme);
 
+    document.getElementById('minBtn').addEventListener('click', () => window.api.window.minimize());
+    document.getElementById('maxBtn').addEventListener('click', () => window.api.window.maximize());
+    document.getElementById('closeBtn').addEventListener('click', () => window.api.window.close());
+
+    window.api.window.onMaximizedChanged((maximized) => {
+      document.getElementById('maxIcon').style.display = maximized ? 'none' : '';
+      document.getElementById('restoreIcon').style.display = maximized ? '' : 'none';
+    });
+
     titleInput.addEventListener('input', () => {
+      const note = notes.find(n => n.id === activeNoteId);
+      if (note) { note.title = titleInput.value; note.updatedAt = Date.now(); }
       queueFileSave();
       updateActiveNoteItem();
     });
 
     contentInput.addEventListener('input', () => {
+      const note = notes.find(n => n.id === activeNoteId);
+      if (note) { note.content = contentInput.value; note.updatedAt = Date.now(); }
       queueFileSave();
       updateActiveNoteItem();
     });
@@ -237,7 +260,7 @@
     noteList.addEventListener('click', (e) => {
       const item = e.target.closest('.note-item');
       if (!item) return;
-      selectNote(item.dataset.id);
+      selectNote(item.dataset.id, false);
     });
 
     noteList.addEventListener('dblclick', (e) => {
@@ -310,8 +333,7 @@
       if (notes.length === 0) {
         createNewNote();
       } else {
-        activeNoteId = notes[0].id;
-        selectNote(activeNoteId);
+        selectNote(notes[0].id);
       }
       setupEventListeners();
     });

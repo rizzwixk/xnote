@@ -5,6 +5,8 @@ const fs = require('fs');
 const notesPath = path.join(app.getPath('userData'), 'notes.json');
 const themePath = path.join(app.getPath('userData'), 'theme.json');
 
+let mainWin = null;
+
 function loadData(filePath) {
   try {
     if (fs.existsSync(filePath)) {
@@ -39,12 +41,24 @@ ipcMain.handle('theme:save', (_e, mode) => {
   return true;
 });
 
+ipcMain.on('window:minimize', () => mainWin?.minimize());
+ipcMain.on('window:maximize', () => {
+  if (mainWin?.isMaximized()) {
+    mainWin?.unmaximize();
+  } else {
+    mainWin?.maximize();
+  }
+});
+ipcMain.on('window:close', () => mainWin?.close());
+ipcMain.handle('window:isMaximized', () => mainWin?.isMaximized() ?? false);
+
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWin = new BrowserWindow({
     width: 900,
     height: 700,
     minWidth: 500,
     minHeight: 400,
+    frame: false,
     backgroundColor: '#1a1a1a',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -54,8 +68,11 @@ function createWindow() {
     }
   });
 
-  win.setMenu(null);
-  win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  mainWin.setMenu(null);
+  mainWin.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+
+  mainWin.on('maximize', () => mainWin.webContents.send('window:maximized-changed', true));
+  mainWin.on('unmaximize', () => mainWin.webContents.send('window:maximized-changed', false));
 }
 
 app.whenReady().then(() => {
