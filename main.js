@@ -60,6 +60,7 @@ function createWindow() {
     minHeight: 400,
     frame: false,
     backgroundColor: '#1a1a1a',
+    icon: path.join(__dirname, 'build', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

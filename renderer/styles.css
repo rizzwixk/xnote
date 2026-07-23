@@ -67,6 +67,9 @@ body {
 
 #titlebarControls {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 12px;
   -webkit-app-region: no-drag;
 }
 
@@ -74,23 +77,35 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 38px;
+  width: 12px;
+  height: 12px;
   border: none;
-  background: transparent;
-  color: var(--text-secondary);
+  border-radius: 50%;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: filter 0.15s, transform 0.1s;
+  svg { opacity: 0; }
 }
 
 .titlebar-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  filter: brightness(0.85);
+  transform: scale(1.1);
+  svg { opacity: 1; }
 }
 
-#closeBtn:hover {
-  background: #e81123;
-  color: #ffffff;
+.titlebar-btn:active {
+  transform: scale(0.95);
+}
+
+.mac-close {
+  background: #cc4c45;
+}
+
+.mac-min {
+  background: #cc9a25;
+}
+
+.mac-max {
+  background: #1f8c31;
 }
 
 #app {
