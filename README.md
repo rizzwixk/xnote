@@ -2,15 +2,6 @@
 
 A minimal, grayscale notes app built with Electron.
 
-## Features
-
-- Create, edit, and delete notes
-- Auto-save with status indicator
-- Dark/light theme with Lottie moon-to-sun animation
-- Keyboard shortcuts (Ctrl+N new note, Ctrl+D delete)
-- Double-click to delete a note
-- Slide-in note list animations
-
 ## Usage
 
 ```bash
@@ -24,3 +15,7 @@ npm run dev
 |----------|--------------|
 | Ctrl+N   | New note     |
 | Ctrl+D   | Delete note  |
+
+## NOTE
+
+this app is highly experimental and just a base for a future notes app that has a bunch of ai features 
