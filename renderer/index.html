@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <title>xnote</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark">
+  <div id="app">
+    <main>
+      <aside id="sidebar">
+        <div id="sidebarHeader">
+          <button id="newNoteBtn">+ New Note</button>
+          <button id="themeToggle" title="Toggle theme">
+            <div id="lottieContainer"></div>
+          </button>
+        </div>
+        <ul id="noteList"></ul>
+      </aside>
+      <section id="editor">
+        <input id="titleInput" type="text" placeholder="Note title..." />
+        <textarea id="contentInput" placeholder="Write your note here..."></textarea>
+        <div id="editorStatus"></div>
+      </section>
+    </main>
+  </div>
+  <script src="../node_modules/lottie-web/build/player/lottie.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

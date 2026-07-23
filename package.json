@@ -1,0 +1,18 @@
+{
+  "name": "xnote",
+  "version": "1.0.0",
+  "description": "A minimal grayscale notes app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "dependencies": {
+    "@lottiefiles/dotlottie-web": "^0.78.2",
+    "lottie-web": "^5.13.0",
+    "lucide": "^1.26.0"
+  }
+}
