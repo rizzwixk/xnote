@@ -1,3 +1,28 @@
+@font-face {
+  font-family: 'Elms Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/ElmsSans-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Elms Sans';
+  font-style: normal;
+  font-weight: 500;
+  src: url('fonts/ElmsSans-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Elms Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url('fonts/ElmsSans-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Elms Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/ElmsSans-Bold.ttf') format('truetype');
+}
+
 /* Universal reset: remove default margins, padding, use border-box sizing */
 *, *::before, *::after {
   margin: 0;
@@ -5,43 +30,80 @@
   box-sizing: border-box;
 }
 
-/* CSS custom properties for the default dark theme */
-:root {
-  --bg-primary: #1a1a1a;      /* Main background (darkest) */
-  --bg-secondary: #222222;    /* Sidebar and secondary panels */
-  --bg-tertiary: #2a2a2a;     /* Buttons and hover states */
-  --bg-hover: #333333;        /* Hover highlight background */
-  --text-primary: #e0e0e0;    /* Main text color (light gray) */
-  --text-secondary: #999999;  /* Secondary/label text */
-  --text-muted: #666666;      /* Muted text (status, placeholders) */
-  --border: #333333;          /* Default border color */
-  --accent: #888888;          /* Focus/highlight accent */
-  --scrollbar-thumb: #444444; /* Scrollbar handle color */
-  --scrollbar-track: #1a1a1a; /* Scrollbar track color */
+/* Dark — dark grayscale (default) */
+:root, body[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #222222;
+  --bg-tertiary: #2a2a2a;
+  --bg-hover: #333333;
+  --text-primary: #e0e0e0;
+  --text-secondary: #999999;
+  --text-muted: #666666;
+  --border: #333333;
+  --accent: #888888;
+  --scrollbar-thumb: #444444;
+  --scrollbar-track: #1a1a1a;
 }
 
-/* Light theme overrides - applied when body has 'light' class */
-body.light {
-  --bg-primary: #d0d0d0;
-  --bg-secondary: #dcdcdc;
-  --bg-tertiary: #d0d0d0;
-  --bg-hover: #c4c4c4;
-  --text-primary: #1a1a1a;
-  --text-secondary: #4a4a4a;
-  --text-muted: #6a6a6a;
-  --border: #b8b8b8;
-  --accent: #555555;
-  --scrollbar-thumb: #aaaaaa;
-  --scrollbar-track: #dcdcdc;
+/* Forest — dark theme with green accent */
+body[data-theme="forest"] {
+  --bg-primary: #0f1a0f;
+  --bg-secondary: #1a2e1a;
+  --bg-tertiary: #243c24;
+  --bg-hover: #2e4a2e;
+  --text-primary: #d4e6d4;
+  --text-secondary: #8ba88b;
+  --text-muted: #6a8a6a;
+  --border: #2a4a2a;
+  --accent: #4caf50;
+  --scrollbar-thumb: #2a4a2a;
+  --scrollbar-track: #0f1a0f;
 }
 
-/* Base html/body: full height, no overflow, system font stack */
+/* Ivory — light theme with gold accent */
+body[data-theme="ivory"] {
+  --bg-primary: #faf8f5;
+  --bg-secondary: #f0ece4;
+  --bg-tertiary: #e8e2d8;
+  --bg-hover: #ddd6cc;
+  --text-primary: #2c2416;
+  --text-secondary: #6b5d4e;
+  --text-muted: #9a8c7e;
+  --border: #d4cec4;
+  --accent: #c4956a;
+  --scrollbar-thumb: #d4cec4;
+  --scrollbar-track: #faf8f5;
+}
+
+/* Sky — light theme with blue accent */
+body[data-theme="sky"] {
+  --bg-primary: #e8f2f8;
+  --bg-secondary: #d6e8f4;
+  --bg-tertiary: #c4def0;
+  --bg-hover: #b8d4e8;
+  --text-primary: #1a2a3a;
+  --text-secondary: #4a6a7a;
+  --text-muted: #7a9aaa;
+  --border: #b8d0e0;
+  --accent: #2196f3;
+  --scrollbar-thumb: #b8d0e0;
+  --scrollbar-track: #e8f2f8;
+}
+
+/* Base html/body: full height, no overflow, system font stack, bold UI */
 html, body {
   height: 100%;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: 'Elms Sans', sans-serif;
+  font-weight: 600;
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+/* Editor content stays normal weight */
+#titleInput,
+#contentInput {
+  font-weight: 400;
 }
 
 /* Body uses flex column layout for titlebar + app content */
@@ -205,39 +267,147 @@ main {
   transform: scale(0.97);
 }
 
-/* Settings panel: slides down from sidebar header */
-#settingsPanel {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.25s ease;
-  padding: 0 10px;
+/* Modal overlay: dark backdrop covering the full window */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-overlay[hidden] { display: none; }
+
+/* Modal panel: centered card with settings content */
+.modal-panel {
+  width: 340px;
+  max-height: 80vh;
+  overflow-y: auto;
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  animation: modalIn 0.2s ease;
 }
 
-#settingsPanel.open {
-  max-height: 160px;
-  opacity: 1;
-  padding: 10px;
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Each row in the settings panel */
+/* Modal header row with title and close button */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Modal body with setting groups */
+.modal-body {
+  padding: 16px 18px 18px;
+}
+
+.settings-group {
+  margin-bottom: 16px;
+}
+
+.settings-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
 .settings-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 0;
-  font-size: 12px;
-}
-
-.settings-label {
+  padding: 5px 0;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .settings-value {
+  font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Theme selector grid */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 6px 8px;
+  background: var(--bg-tertiary);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.theme-card:hover {
+  background: var(--bg-hover);
+}
+
+.theme-card.selected {
+  border-color: var(--accent);
+}
+
+.theme-swatch {
+  width: 40px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.theme-card-label {
   font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Separator line in settings panel */
+.settings-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
 }
 
 /* Toggle switch */
@@ -289,6 +459,14 @@ main {
 .toggle-switch input:checked + .toggle-slider::before {
   transform: translateX(16px);
   background: var(--text-primary);
+}
+
+/* Light themes: always white toggle knob */
+body[data-theme="ivory"] .toggle-slider::before,
+body[data-theme="sky"] .toggle-slider::before,
+body[data-theme="ivory"] .toggle-switch input:checked + .toggle-slider::before,
+body[data-theme="sky"] .toggle-switch input:checked + .toggle-slider::before {
+  background: #fff;
 }
 
 /* Note list: scrollable list of note items */
@@ -510,59 +688,144 @@ main {
   color: var(--text-muted);
 }
 
-/* Contextual formatting suggestion, positioned near the middle-right of the editor */
-.format-suggestion {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 10px 10px 13px;
-  background: var(--bg-tertiary);
+/* Context menu */
+.context-menu {
+  position: fixed;
+  z-index: 200;
+  min-width: 180px;
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 18px 0 0 18px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-  z-index: 5;
-  transform-origin: right center;
-  animation: suggestionIn 0.46s cubic-bezier(0.22, 1.18, 0.36, 1) both;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  padding: 4px 0;
+  animation: ctxIn 0.12s ease;
 }
 
-.format-suggestion[hidden] { display: none; }
+.context-menu[hidden] { display: none; }
 
-.format-suggestion-copy {
-  font-size: 12px;
+@keyframes ctxIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.context-menu-item {
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.1s;
+}
+
+.context-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.context-menu-item[data-action="delete"]:hover {
+  background: #882020;
+  color: #fff;
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* Submenu arrow */
+.context-menu-arrow {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-left: 12px;
+}
+
+/* Submenu */
+.context-menu-submenu {
+  position: relative;
+}
+
+.context-menu-submenu-content {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: -4px;
+  min-width: 160px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  padding: 4px 0;
+}
+
+.context-menu-submenu:hover > .context-menu-submenu-content {
+  display: block;
+  animation: ctxIn 0.12s ease;
+}
+
+/* Active indicator for AI features */
+.context-menu-item[data-action="spellcheck"].active,
+.context-menu-item[data-action="autoformat"].active {
+  color: var(--accent);
+}
+
+/* Confirm dialog */
+.confirm-panel {
+  width: 320px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  animation: modalIn 0.15s ease;
+  overflow: hidden;
+}
+
+.confirm-title {
+  padding: 12px 16px 0;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text-secondary);
 }
 
-#suggestFormatBtn {
-  padding: 5px 10px;
-  border: 0;
-  border-radius: 4px;
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  font-size: 11px;
+.confirm-message {
+  padding: 16px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 16px 14px;
+}
+
+.confirm-btn {
+  padding: 6px 18px;
+  font-size: 13px;
   font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
   cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
 }
 
-#suggestFormatBtn:hover { opacity: 0.82; }
-#suggestFormatBtn:disabled { opacity: 0.5; cursor: default; }
-
-.suggestion-dismiss {
-  padding: 0 2px;
-  border: 0;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
+.confirm-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
 }
 
-@keyframes suggestionIn {
-  0% { opacity: 0; transform: translateX(34px) translateY(-50%) scale(0.78); border-radius: 28px 0 0 28px; }
-  55% { opacity: 1; transform: translateX(-5px) translateY(-50%) scale(1.03); border-radius: 22px 0 0 22px; }
-  78% { transform: translateX(2px) translateY(-50%) scale(0.99); }
-  100% { opacity: 1; transform: translateX(0) translateY(-50%) scale(1); border-radius: 18px 0 0 18px; }
+.confirm-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.confirm-btn-primary:hover {
+  opacity: 0.88;
+  background: var(--accent);
+  border-color: var(--accent);
 }

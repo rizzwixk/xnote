@@ -4,7 +4,7 @@
   <meta charset="UTF-8"> <!-- Unicode character encoding -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsive viewport scaling -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"> <!-- Restricts resources to same origin only -->
-  <title>xnote v1.2.1</title> <!-- Browser tab/window title -->
+  <title>xnote v1.3.0</title> <!-- Browser tab/window title -->
   <link rel="stylesheet" href="styles.css"> <!-- Link to the application stylesheet -->
 </head>
 <body class="dark"> <!-- Body starts in dark theme mode -->
@@ -36,26 +36,54 @@
       <aside id="sidebar">
         <div id="sidebarHeader"> <!-- Sidebar toolbar -->
           <button id="newNoteBtn">+ New Note</button> <!-- Create new note button -->
-          <button id="settingsBtn" title="Settings">⚙</button> <!-- Settings button -->
+          <button id="settingsBtn" title="Settings"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button> <!-- Settings button -->
         </div>
-        <div id="settingsPanel"> <!-- Settings panel -->
-          <div class="settings-row"> <!-- Version display -->
-            <span class="settings-label">Version</span>
-            <span class="settings-value">v1.2.1</span>
-          </div>
-          <div class="settings-row"> <!-- Dark mode toggle -->
-            <span class="settings-label">Dark Mode</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="themeToggleCheckbox" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="settings-row"> <!-- AI features toggle -->
-            <span class="settings-label">AI Features</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="aiToggleCheckbox" checked>
-              <span class="toggle-slider"></span>
-            </label>
+        <!-- Settings modal overlay (hidden by default) -->
+        <div id="settingsModal" class="modal-overlay" hidden>
+          <div class="modal-panel">
+            <div class="modal-header">
+              <span>Settings</span>
+              <button id="closeSettingsBtn" class="modal-close" type="button">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="settings-group">
+                <div class="settings-group-title">Theme</div>
+                <div class="theme-grid">
+                  <button class="theme-card" data-theme="dark">
+                    <div class="theme-swatch" style="background:linear-gradient(135deg,#1a1a1a 50%,#888888 50%)"></div>
+                    <span class="theme-card-label">Dark</span>
+                  </button>
+                  <button class="theme-card" data-theme="forest">
+                    <div class="theme-swatch" style="background:linear-gradient(135deg,#0f1a0f 50%,#4caf50 50%)"></div>
+                    <span class="theme-card-label">Forest</span>
+                  </button>
+                  <button class="theme-card" data-theme="ivory">
+                    <div class="theme-swatch" style="background:linear-gradient(135deg,#faf8f5 50%,#c4956a 50%)"></div>
+                    <span class="theme-card-label">Ivory</span>
+                  </button>
+                  <button class="theme-card" data-theme="sky">
+                    <div class="theme-swatch" style="background:linear-gradient(135deg,#e8f2f8 50%,#2196f3 50%)"></div>
+                    <span class="theme-card-label">Sky</span>
+                  </button>
+                </div>
+              </div>
+              <div class="settings-separator"></div>
+              <div class="settings-group">
+                <div class="settings-group-title">AI</div>
+                <div class="settings-row">
+                  <span>AI Features</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="aiToggleCheckbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="settings-separator"></div>
+              <div class="settings-row">
+                <span style="color:var(--text-muted);font-size:12px">Version</span>
+                <span class="settings-value">v1.3.0</span>
+              </div>
+            </div>
           </div>
         </div>
         <div id="lottieContainer" style="display:none"></div> <!-- Lottie container for theme animation -->
@@ -66,16 +94,37 @@
       <section id="editor">
         <input id="titleInput" type="text" placeholder="Note title..." /> <!-- Note title input field -->
         <textarea id="contentInput" placeholder="Write your note here..."></textarea> <!-- Note content textarea -->
-        <div id="formatSuggestion" class="format-suggestion" role="status" aria-live="polite" hidden>
-          <div class="format-suggestion-copy">Want to tidy the format?</div>
-          <button id="suggestFormatBtn" type="button">Suggest</button>
-          <button id="dismissSuggestionBtn" class="suggestion-dismiss" type="button" aria-label="Dismiss formatting suggestion">×</button>
-        </div>
         <div id="editorFooter"> <!-- Editor footer bar -->
           <div id="editorStatus"></div> <!-- Status messages (save confirmations, AI progress) -->
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Custom confirm dialog -->
+  <div id="confirmDialog" class="modal-overlay" hidden>
+    <div class="confirm-panel">
+      <div class="confirm-title">xnote</div>
+      <div class="confirm-message" id="confirmMessage"></div>
+      <div class="confirm-buttons">
+        <button id="confirmOk" class="confirm-btn confirm-btn-primary">OK</button>
+        <button id="confirmCancel" class="confirm-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom context menu -->
+  <div id="contextMenu" class="context-menu" hidden>
+    <div class="context-menu-item" data-action="delete">Delete</div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item context-menu-submenu" data-action="ai">
+      AI Features
+      <span class="context-menu-arrow">&#9654;</span>
+      <div class="context-menu-submenu-content">
+        <div class="context-menu-item" data-action="spellcheck">Spell Check</div>
+        <div class="context-menu-item" data-action="autoformat">Auto Format</div>
+      </div>
+    </div>
   </div>
 
   <!-- Lottie animation library for theme toggle transition -->

@@ -26,81 +26,102 @@
   const newNoteBtn = document.getElementById('newNoteBtn');
   // DOM reference: status bar text at bottom of editor
   const editorStatus = document.getElementById('editorStatus');
-  // DOM references for the contextual formatting suggestion
-  const formatSuggestion = document.getElementById('formatSuggestion');
-  const suggestFormatBtn = document.getElementById('suggestFormatBtn');
-  const dismissSuggestionBtn = document.getElementById('dismissSuggestionBtn');
-  // DOM references: settings panel, button, toggles
+  // DOM references: settings modal, button, toggles
   const settingsBtn = document.getElementById('settingsBtn');
-  const settingsPanel = document.getElementById('settingsPanel');
-  const themeToggleCheckbox = document.getElementById('themeToggleCheckbox');
+  const settingsModal = document.getElementById('settingsModal');
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
   const aiToggleCheckbox = document.getElementById('aiToggleCheckbox');
+  // Theme names available for selection
+  const themes = ['dark', 'forest', 'ivory', 'sky'];
   // DOM reference: Lottie animation container for theme transition
   const lottieContainer = document.getElementById('lottieContainer');
+  // DOM reference: context menu
+  const contextMenu = document.getElementById('contextMenu');
+  // DOM reference: custom confirm dialog
+  const confirmDialog = document.getElementById('confirmDialog');
+  const confirmMessage = document.getElementById('confirmMessage');
+  const confirmOk = document.getElementById('confirmOk');
+  const confirmCancel = document.getElementById('confirmCancel');
 
   // Reference to the Lottie animation instance
   let anim = null;
   // Flag indicating Lottie animation has finished loading
   let animReady = false;
-  // Theme stored while waiting for animation to load (applied after)
-  let pendingTheme = null;
-  // Current theme mode: 'dark' or 'light'
-  let themeMode = 'dark';
+  // Currently selected theme name (e.g. 'dark', 'ivory')
+  let theme = 'dark';
   // Whether AI features are enabled (can be toggled off for a plain notes app)
   let aiEnabled = true;
+  // Context menu AI feature states
+  let spellCheckEnabled = false;
+  let autoFormatEnabled = false;
 
-  // Applies the current theme to the document body
-  function applyTheme(animate) {
-    // Determine if we're switching to dark mode
-    const isDark = themeMode === 'dark';
-
-    // Toggles the 'dark'/'light' CSS classes on the body element
-    function doSwitch() {
-      document.body.classList.toggle('dark', isDark);
-      document.body.classList.toggle('light', !isDark);
-    }
-
-    // If animation is requested and Lottie is ready, play transition
-    if (animate && animReady) {
-      // Prevents double-switch during animation
-      let switched = false;
-      // Listen for animation frames to time the theme switch mid-animation
-      function onEnterFrame(e) {
-        // Get the current animation frame number
-        const frame = Math.round(e.currentTime);
-        // Switch theme at the start (dark) or near end (light) of animation
-        const trigger = isDark ? frame <= 1 : frame >= 54;
-        if (trigger && !switched) {
-          switched = true;
-          // Remove listener after first trigger
-          anim.removeEventListener('enterFrame', onEnterFrame);
-          doSwitch();
-        }
-      }
-      anim.addEventListener('enterFrame', onEnterFrame);
-      if (isDark) {
-        // Play animation in reverse for dark transition
-        anim.setDirection(-1);
-        anim.goToAndPlay(60, true);
-      } else {
-        // Play animation forward for light transition
-        anim.setDirection(1);
-        anim.goToAndPlay(0, true);
-      }
-    } else {
-      // Apply theme immediately without animation
-      doSwitch();
-    }
+  // Applies the current theme to the document body via data-theme attribute
+  function applyTheme() {
+    document.body.setAttribute('data-theme', theme);
   }
 
-  // Toggles between dark and light themes with animation
-  function toggleTheme() {
-    // Read the theme from the checkbox state
-    themeMode = themeToggleCheckbox.checked ? 'dark' : 'light';
-    // Apply theme instantly with no animation delay
-    applyTheme(false);
-    // Persist the new theme preference to disk
-    window.api.theme.save(themeMode);
+  // Selects a theme by name, updates the UI, and persists the preference
+  function selectTheme(name) {
+    // Validate the theme name, fall back to dark
+    theme = themes.includes(name) ? name : 'dark';
+    applyTheme();
+    window.api.theme.save(theme);
+    // Update the selected state on theme cards in the modal
+    document.querySelectorAll('.theme-card').forEach(card => {
+      card.classList.toggle('selected', card.dataset.theme === theme);
+    });
+  }
+
+  // Opens the settings modal
+  function openSettingsModal() {
+    settingsModal.removeAttribute('hidden');
+  }
+
+  // Closes the settings modal
+  function closeSettingsModal() {
+    settingsModal.setAttribute('hidden', '');
+  }
+
+  // Shows the context menu at mouse position
+  function showContextMenu(x, y) {
+    // Update active indicators
+    const spellItem = contextMenu.querySelector('[data-action="spellcheck"]');
+    const formatItem = contextMenu.querySelector('[data-action="autoformat"]');
+    if (spellItem) spellItem.classList.toggle('active', spellCheckEnabled);
+    if (formatItem) formatItem.classList.toggle('active', autoFormatEnabled);
+    // Position and show
+    contextMenu.style.left = x + 'px';
+    contextMenu.style.top = y + 'px';
+    contextMenu.removeAttribute('hidden');
+  }
+
+  // Hides the context menu
+  function hideContextMenu() {
+    contextMenu.setAttribute('hidden', '');
+  }
+
+  // Custom confirm dialog — returns a Promise resolving to true/false
+  function showConfirm(message) {
+    return new Promise((resolve) => {
+      confirmMessage.textContent = message;
+      confirmDialog.removeAttribute('hidden');
+      function onOk() { cleanup(); resolve(true); }
+      function onCancel() { cleanup(); resolve(false); }
+      function onKey(e) {
+        if (e.key === 'Enter') onOk();
+        if (e.key === 'Escape') onCancel();
+      }
+      function cleanup() {
+        confirmOk.removeEventListener('click', onOk);
+        confirmCancel.removeEventListener('click', onCancel);
+        document.removeEventListener('keydown', onKey);
+        confirmDialog.setAttribute('hidden', '');
+      }
+      confirmOk.addEventListener('click', onOk);
+      confirmCancel.addEventListener('click', onCancel);
+      document.addEventListener('keydown', onKey);
+      confirmOk.focus();
+    });
   }
 
   // Updates the status bar text in the editor footer
@@ -222,7 +243,6 @@
     setStatus('');
     // Trigger auto-title generation if the note has content but no title
     maybeGenerateTitle();
-    scheduleFormatSuggestion();
   }
 
   // Restarts the fade-in animation on the editor panel
@@ -258,55 +278,11 @@
   // Tracks whether the local AI model has finished setting up
   let aiReady = false;
 
-  // Updates the Fix button disabled state based on AI and note readiness
-  function updateFixBtn() {
-    suggestFormatBtn.disabled = !aiReady || aiBusy || !activeNoteId || !aiEnabled;
-  }
-
-  // Handles clicking the Fix button to run AI spelling/formatting correction
-  function handleFixClick() {
-    // Prevent action if AI isn't ready, already busy, disabled, or no note selected
-    if (!aiReady || aiBusy || !aiEnabled || !activeNoteId) return;
-    const note = notes.find(n => n.id === activeNoteId);
-    if (!note) return;
-    // Read from the editor directly — it is the source of truth
-    const currentText = contentInput.value;
-    if (!currentText.trim()) return;
-    // Mark AI as busy and update button state
-    aiBusy = true;
-    updateFixBtn();
-    suggestFormatBtn.textContent = '...'; // Show progress indicator
-    setStatus('Fixing...');
-    // Call the main process to fix text via local llama.cpp model
-    window.api.ai.fixText(titleInput.value, currentText).then((fixed) => {
-      // Only apply changes if AI returned something different
-      if (fixed && fixed !== currentText) {
-        // Update the editor first, then sync the note object from it
-        contentInput.value = fixed;
-        note.content = fixed;
-        note.updatedAt = Date.now();
-        queueFileSave();
-        updateActiveNoteItem();
-        setStatus('Fixed');
-      } else {
-        setStatus('No changes needed');
-      }
-    }).catch(() => {
-      setStatus('Fix failed');
-    }).finally(() => {
-      // Always reset busy state and restore button
-      aiBusy = false;
-      suggestFormatBtn.textContent = 'Suggest';
-      updateFixBtn();
-    });
-  }
-
   // Handles AI status updates from the main process setup pipeline
   function handleAIStatus(status) {
     if (status.stage === 'ready') {
       // AI setup complete - enable features
       aiReady = true;
-      updateFixBtn();
       // Clear status bar if it shows AI progress text
       if (editorStatus.textContent === '' || editorStatus.textContent.startsWith('AI:')) {
         setStatus('');
@@ -315,7 +291,6 @@
     } else if (status.stage === 'error') {
       // AI setup failed - keep features disabled
       aiReady = false;
-      updateFixBtn();
       setStatus('AI setup failed: ' + status.detail);
     } else if (status.stage === 'checking') {
       setStatus('AI: checking...');
@@ -363,24 +338,6 @@
         }
       }).catch(() => {});
     }, 1400);
-  }
-
-  function hideFormatSuggestion() {
-    formatSuggestion.hidden = true;
-  }
-
-  function scheduleFormatSuggestion() {
-    hideFormatSuggestion();
-    if (!aiReady || !aiEnabled || !activeNoteId || !contentInput.value.trim()) return;
-    const title = titleInput.value.toLowerCase();
-    const lines = contentInput.value.split(/\r?\n/).filter(line => line.trim());
-    const listTitle = /\b(list|shopping|grocer|todo|task|checklist|errand|ingredient|packing|wishlist)\b/.test(title);
-    const markedLines = lines.filter(line => /^\s*(?:[-*+•]|\d+[.)])\s+/.test(line));
-    const listLike = listTitle || markedLines.length >= 2 ||
-      (lines.length >= 3 && lines.every(line => line.trim().length <= 80 && !/[.!?]$/.test(line.trim())));
-    if (!listLike) return;
-    formatSuggestion.hidden = false;
-    updateFixBtn();
   }
 
   // Automatically generates a title if the note has content but no title
@@ -510,26 +467,25 @@
   function setupEventListeners() {
     // New note button in sidebar
     newNoteBtn.addEventListener('click', createNewNote);
-    // Settings button toggles settings panel
-    settingsBtn.addEventListener('click', () => {
-      settingsPanel.classList.toggle('open');
+    // Settings button opens the settings modal
+    settingsBtn.addEventListener('click', openSettingsModal);
+    closeSettingsBtn.addEventListener('click', closeSettingsModal);
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) closeSettingsModal();
     });
-    // Theme toggle checkbox
-    themeToggleCheckbox.addEventListener('change', toggleTheme);
+    // Theme card selection in the modal
+    document.querySelectorAll('.theme-card').forEach(card => {
+      card.addEventListener('click', () => selectTheme(card.dataset.theme));
+    });
     // AI features toggle
     aiToggleCheckbox.addEventListener('change', () => {
       aiEnabled = aiToggleCheckbox.checked;
-      updateFixBtn();
       if (!aiEnabled) {
-        hideFormatSuggestion();
         setStatus('AI features disabled');
       } else {
         setStatus('AI features enabled');
       }
     });
-    // AI fix button for spelling/formatting
-    suggestFormatBtn.addEventListener('click', handleFixClick);
-    dismissSuggestionBtn.addEventListener('click', hideFormatSuggestion);
 
     // Custom titlebar window control buttons
     document.getElementById('minBtn').addEventListener('click', () => window.api.window.minimize());
@@ -548,7 +504,6 @@
       if (note) { note.title = titleInput.value; note.updatedAt = Date.now(); }
       queueFileSave();
       updateActiveNoteItem();
-      scheduleFormatSuggestion();
     });
 
     // Content input - save on each keystroke and trigger auto-title generation
@@ -557,8 +512,7 @@
       if (note) { note.content = contentInput.value; note.updatedAt = Date.now(); }
       queueFileSave();
       updateActiveNoteItem();
-      scheduleFormatSuggestion();
-      maybeGenerateTitle();
+    maybeGenerateTitle();
       scheduleAutoProofread();
     });
 
@@ -569,27 +523,34 @@
       selectNote(item.dataset.id, false);
     });
 
-    // Double-click on a note item deletes it
-    noteList.addEventListener('dblclick', (e) => {
+    // Right-click on note list shows context menu
+    noteList.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
       const item = e.target.closest('.note-item');
       if (!item) return;
-      deleteNote(item.dataset.id);
+      selectNote(item.dataset.id, false);
+      showContextMenu(e.clientX, e.clientY);
     });
 
-    // Global keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // Ctrl+N / Cmd+N: Create new note
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        createNewNote();
-      }
-      // Ctrl+D / Cmd+D: Delete current note (with confirmation)
-      if (activeNoteId && (e.ctrlKey || e.metaKey) && e.key === 'd') {
-        e.preventDefault();
-        if (confirm('Delete this note?')) {
+    // Click anywhere hides context menu
+    document.addEventListener('click', hideContextMenu);
+
+    // Context menu item actions
+    contextMenu.addEventListener('click', async (e) => {
+      const action = e.target.closest('.context-menu-item')?.dataset.action;
+      if (!action) return;
+      if (action === 'delete') {
+        if (activeNoteId && await showConfirm('Delete this note?')) {
           deleteNote(activeNoteId);
         }
+      } else if (action === 'spellcheck') {
+        spellCheckEnabled = !spellCheckEnabled;
+        setStatus(spellCheckEnabled ? 'Spell Check: ON' : 'Spell Check: OFF');
+      } else if (action === 'autoformat') {
+        autoFormatEnabled = !autoFormatEnabled;
+        setStatus(autoFormatEnabled ? 'Auto Format: ON' : 'Auto Format: OFF');
       }
+      hideContextMenu();
     });
 
     // Save pending changes before the window unloads
@@ -638,12 +599,6 @@
         // Wait for animation SVG to be fully rendered
         anim.addEventListener('DOMLoaded', () => {
           animReady = true;
-          // Apply any theme that was set before animation was ready
-          if (pendingTheme) {
-            themeMode = pendingTheme;
-            pendingTheme = null;
-            applyTheme(false);
-          }
         });
       });
 
@@ -651,14 +606,10 @@
     Promise.all([
       window.api.notes.load(),
       window.api.theme.load()
-    ]).then(([loadedNotes, theme]) => {
-      // Apply saved theme mode
-      themeMode = theme.mode || 'dark';
-      if (animReady) {
-        applyTheme(false);
-      } else {
-        pendingTheme = themeMode;
-      }
+    ]).then(([loadedNotes, savedTheme]) => {
+      // Apply saved theme name
+      theme = (savedTheme && themes.includes(savedTheme)) ? savedTheme : 'dark';
+      applyTheme();
       // Load notes into memory
       notes = loadedNotes || [];
       if (notes.length === 0) {
@@ -668,13 +619,13 @@
         // Select the first note
         selectNote(notes[0].id);
       }
-      // Set checkbox initial states
-      themeToggleCheckbox.checked = themeMode === 'dark';
+      // Mark the selected theme card and set AI toggle
+      document.querySelectorAll('.theme-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.theme === theme);
+      });
       aiToggleCheckbox.checked = aiEnabled;
       // Set up all event listeners
       setupEventListeners();
-      // Disable the contextual formatting action until AI setup completes
-      suggestFormatBtn.disabled = true;
       // Get initial AI setup status
       window.api.ai.getStatus().then(handleAIStatus);
       // Subscribe to ongoing AI status updates

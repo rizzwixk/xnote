@@ -275,14 +275,18 @@ ipcMain.handle('notes:save', (_e, notes) => {
   return true;
 });
 
-// IPC handler: loads theme preference from disk
+// IPC handler: loads theme preference from disk, migrating old format
 ipcMain.handle('theme:load', () => {
-  return loadData(themePath) || { mode: 'dark' };
+  const data = loadData(themePath);
+  if (typeof data === 'string') return data;
+  // Migrate from old { mode: 'dark'|'light' } format
+  if (data && data.mode === 'light') return 'ivory';
+  return 'dark';
 });
 
 // IPC handler: saves theme preference to disk
-ipcMain.handle('theme:save', (_e, mode) => {
-  saveData(themePath, { mode });
+ipcMain.handle('theme:save', (_e, theme) => {
+  saveData(themePath, theme);
   return true;
 });
 

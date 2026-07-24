@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4caf50"/>
+      <stop offset="100%" stop-color="#81c784"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="200" rx="16" fill="url(#bg)"/>
+  <text x="60" y="115" font-family="system-ui, sans-serif" font-size="64" font-weight="800" fill="url(#accent)">x</text>
+  <text x="108" y="115" font-family="system-ui, sans-serif" font-size="64" font-weight="800" fill="#e6edf3">note</text>
+  <text x="60" y="155" font-family="system-ui, sans-serif" font-size="18" fill="#8b949e">Local AI notes app — v1.3.0</text>
+  <rect x="600" y="70" width="140" height="60" rx="8" fill="none" stroke="#4caf50" stroke-width="2"/>
+  <text x="670" y="108" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#4caf50" text-anchor="middle">NEW</text>
+</svg>
