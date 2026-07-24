@@ -36,10 +36,29 @@
       <aside id="sidebar">
         <div id="sidebarHeader"> <!-- Sidebar toolbar -->
           <button id="newNoteBtn">+ New Note</button> <!-- Create new note button -->
-          <button id="themeToggle" title="Toggle theme"> <!-- Dark/light theme toggle -->
-            <div id="lottieContainer"></div> <!-- Lottie animation container for sun/moon transition -->
-          </button>
+          <button id="settingsBtn" title="Settings">⚙</button> <!-- Settings button -->
         </div>
+        <div id="settingsPanel"> <!-- Settings panel -->
+          <div class="settings-row"> <!-- Version display -->
+            <span class="settings-label">Version</span>
+            <span class="settings-value">v1.2.0</span>
+          </div>
+          <div class="settings-row"> <!-- Dark mode toggle -->
+            <span class="settings-label">Dark Mode</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="themeToggleCheckbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-row"> <!-- AI features toggle -->
+            <span class="settings-label">AI Features</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="aiToggleCheckbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div id="lottieContainer" style="display:none"></div> <!-- Lottie container for theme animation -->
         <ul id="noteList"></ul> <!-- Dynamic list of all notes -->
       </aside>
 

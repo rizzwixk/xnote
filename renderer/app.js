@@ -30,8 +30,11 @@
   const formatSuggestion = document.getElementById('formatSuggestion');
   const suggestFormatBtn = document.getElementById('suggestFormatBtn');
   const dismissSuggestionBtn = document.getElementById('dismissSuggestionBtn');
-  // DOM reference: theme toggle button in sidebar
-  const themeToggle = document.getElementById('themeToggle');
+  // DOM references: settings panel, button, toggles
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const themeToggleCheckbox = document.getElementById('themeToggleCheckbox');
+  const aiToggleCheckbox = document.getElementById('aiToggleCheckbox');
   // DOM reference: Lottie animation container for theme transition
   const lottieContainer = document.getElementById('lottieContainer');
 
@@ -43,6 +46,8 @@
   let pendingTheme = null;
   // Current theme mode: 'dark' or 'light'
   let themeMode = 'dark';
+  // Whether AI features are enabled (can be toggled off for a plain notes app)
+  let aiEnabled = true;
 
   // Applies the current theme to the document body
   function applyTheme(animate) {
@@ -90,8 +95,8 @@
 
   // Toggles between dark and light themes with animation
   function toggleTheme() {
-    // Flip the theme mode
-    themeMode = themeMode === 'dark' ? 'light' : 'dark';
+    // Read the theme from the checkbox state
+    themeMode = themeToggleCheckbox.checked ? 'dark' : 'light';
     // Apply with Lottie animation
     applyTheme(true);
     // Persist the new theme preference to disk
@@ -255,13 +260,13 @@
 
   // Updates the Fix button disabled state based on AI and note readiness
   function updateFixBtn() {
-    suggestFormatBtn.disabled = !aiReady || aiBusy || !activeNoteId;
+    suggestFormatBtn.disabled = !aiReady || aiBusy || !activeNoteId || !aiEnabled;
   }
 
   // Handles clicking the Fix button to run AI spelling/formatting correction
   function handleFixClick() {
-    // Prevent action if AI isn't ready, already busy, or no note selected
-    if (!aiReady || aiBusy || !activeNoteId) return;
+    // Prevent action if AI isn't ready, already busy, disabled, or no note selected
+    if (!aiReady || aiBusy || !aiEnabled || !activeNoteId) return;
     const note = notes.find(n => n.id === activeNoteId);
     if (!note) return;
     // Read from the editor directly — it is the source of truth
@@ -306,7 +311,7 @@
       if (editorStatus.textContent === '' || editorStatus.textContent.startsWith('AI:')) {
         setStatus('');
       }
-      scheduleAutoProofread();
+      if (aiEnabled) scheduleAutoProofread();
     } else if (status.stage === 'error') {
       // AI setup failed - keep features disabled
       aiReady = false;
@@ -335,7 +340,7 @@
   function scheduleAutoProofread() {
     if (proofreadTimer !== null) clearTimeout(proofreadTimer);
     const requestId = ++proofreadRequest;
-    if (!aiReady || !activeNoteId || !contentInput.value.trim()) return;
+    if (!aiReady || !aiEnabled || !activeNoteId || !contentInput.value.trim()) return;
 
     proofreadTimer = setTimeout(() => {
       proofreadTimer = null;
@@ -366,7 +371,7 @@
 
   function scheduleFormatSuggestion() {
     hideFormatSuggestion();
-    if (!aiReady || !activeNoteId || !contentInput.value.trim()) return;
+    if (!aiReady || !aiEnabled || !activeNoteId || !contentInput.value.trim()) return;
     const title = titleInput.value.toLowerCase();
     const lines = contentInput.value.split(/\r?\n/).filter(line => line.trim());
     const listTitle = /\b(list|shopping|grocer|todo|task|checklist|errand|ingredient|packing|wishlist)\b/.test(title);
@@ -380,8 +385,8 @@
 
   // Automatically generates a title if the note has content but no title
   function maybeGenerateTitle() {
-    // Only proceed if AI is ready and a note is selected
-    if (!activeNoteId || !aiReady) return;
+    // Only proceed if AI is ready, enabled, and a note is selected
+    if (!activeNoteId || !aiReady || !aiEnabled) return;
     const note = notes.find(n => n.id === activeNoteId);
     // Skip if title already exists or note has no content
     if (!note || note.title || !note.content.trim()) return;
@@ -505,8 +510,23 @@
   function setupEventListeners() {
     // New note button in sidebar
     newNoteBtn.addEventListener('click', createNewNote);
-    // Theme toggle button
-    themeToggle.addEventListener('click', toggleTheme);
+    // Settings button toggles settings panel
+    settingsBtn.addEventListener('click', () => {
+      settingsPanel.classList.toggle('open');
+    });
+    // Theme toggle checkbox
+    themeToggleCheckbox.addEventListener('change', toggleTheme);
+    // AI features toggle
+    aiToggleCheckbox.addEventListener('change', () => {
+      aiEnabled = aiToggleCheckbox.checked;
+      updateFixBtn();
+      if (!aiEnabled) {
+        hideFormatSuggestion();
+        setStatus('AI features disabled');
+      } else {
+        setStatus('AI features enabled');
+      }
+    });
     // AI fix button for spelling/formatting
     suggestFormatBtn.addEventListener('click', handleFixClick);
     dismissSuggestionBtn.addEventListener('click', hideFormatSuggestion);
@@ -648,6 +668,9 @@
         // Select the first note
         selectNote(notes[0].id);
       }
+      // Set checkbox initial states
+      themeToggleCheckbox.checked = themeMode === 'dark';
+      aiToggleCheckbox.checked = aiEnabled;
       // Set up all event listeners
       setupEventListeners();
       // Disable the contextual formatting action until AI setup completes

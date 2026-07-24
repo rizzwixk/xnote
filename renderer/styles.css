@@ -178,8 +178,8 @@ main {
   transform: scale(0.97);
 }
 
-/* Theme toggle button container */
-#themeToggle {
+/* Settings button in sidebar header */
+#settingsBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -188,31 +188,107 @@ main {
   padding: 0;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
-  color: var(--text-primary);
+  color: var(--text-muted);
+  font-size: 16px;
   cursor: pointer;
   border-radius: 4px;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, transform 0.1s, color 0.15s;
   flex-shrink: 0;
 }
 
-/* Theme toggle hover state */
-#themeToggle:hover {
+#settingsBtn:hover {
   background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
-/* Theme toggle pressed state */
-#themeToggle:active {
+#settingsBtn:active {
   transform: scale(0.97);
 }
 
-/* Lottie animation container inside theme toggle */
-#lottieContainer {
-  width: 24px;
-  height: 24px;
+/* Settings panel: slides down from sidebar header */
+#settingsPanel {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.25s ease;
+  padding: 0 10px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+#settingsPanel.open {
+  max-height: 160px;
+  opacity: 1;
+  padding: 10px;
+}
+
+/* Each row in the settings panel */
+.settings-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  pointer-events: none; /* Let clicks pass through to parent button */
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 12px;
+}
+
+.settings-label {
+  color: var(--text-secondary);
+}
+
+.settings-value {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: transform 0.2s ease, background 0.25s ease;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+  background: var(--text-primary);
 }
 
 /* Note list: scrollable list of note items */
