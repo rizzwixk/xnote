@@ -28,6 +28,7 @@ const serverPath = getAiPath('llama-server.exe');
 const modelPath = getAiPath('model.gguf');
 // Port for the local llama.cpp server
 const LLAMA_PORT = 8080;
+const LLAMA_HOST = '127.0.0.1';
 
 // Reference to the main BrowserWindow instance
 let mainWin = null;
@@ -60,7 +61,7 @@ function sendAIStatus() {
 // Checks if the llama.cpp server is running and responding
 function isServerRunning() {
   return new Promise((resolve) => {
-    const req = http.get(`http://localhost:${LLAMA_PORT}/health`, (res) => {
+    const req = http.get(`http://${LLAMA_HOST}:${LLAMA_PORT}/health`, (res) => {
       resolve(res.statusCode === 200);
     });
     req.on('error', () => resolve(false));
@@ -74,9 +75,7 @@ function startServer() {
     const proc = spawn(serverPath, [
       '-m', modelPath,
       '-c', '2048',
-      '--port', String(LLAMA_PORT),
-      '--embedding', '0',
-      '-ngl', '99'
+      '--port', String(LLAMA_PORT)
     ], { detached: true, stdio: 'ignore' });
     proc.unref();
     let waited = 0;
@@ -98,7 +97,7 @@ function callLlama(prompt) {
       stream: false
     });
     const req = http.request({
-      hostname: 'localhost',
+      hostname: LLAMA_HOST,
       port: LLAMA_PORT,
       path: '/completion',
       method: 'POST',
