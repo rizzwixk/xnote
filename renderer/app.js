@@ -261,7 +261,7 @@
     updateFixBtn();
     fixBtn.textContent = '...'; // Show progress indicator
     setStatus('Fixing...');
-    // Call the main process to fix text via local Ollama model
+    // Call the main process to fix text via local llama.cpp model
     window.api.ai.fixText(note.content).then((fixed) => {
       // Only apply changes if AI returned something different
       if (fixed && fixed !== note.content) {

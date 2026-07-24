@@ -24,9 +24,9 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.on('window:maximized-changed', (_e, val) => callback(val));
     }
   },
-  // AI features - local Ollama integration for text processing
+  // AI features - local llama.cpp integration for text processing
   ai: {
-    // Send text to Ollama for spelling/formatting correction
+    // Send text to llama.cpp for spelling/formatting correction
     fixText: (text) => ipcRenderer.invoke('ai:fix-text', text),
     // Generate a note title from content using local AI model
     generateTitle: (content) => ipcRenderer.invoke('ai:generate-title', content),
