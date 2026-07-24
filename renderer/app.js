@@ -97,8 +97,8 @@
   function toggleTheme() {
     // Read the theme from the checkbox state
     themeMode = themeToggleCheckbox.checked ? 'dark' : 'light';
-    // Apply with Lottie animation
-    applyTheme(true);
+    // Apply theme instantly with no animation delay
+    applyTheme(false);
     // Persist the new theme preference to disk
     window.api.theme.save(themeMode);
   }
