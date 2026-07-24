@@ -21,6 +21,13 @@
       "node_modules/**/*",
       "!node_modules/electron/**"
     ],
+    "extraResources": [
+      {
+        "from": "ai",
+        "to": "ai",
+        "filter": ["**/*"]
+      }
+    ],
     "icon": "build/icon.ico",
     "win": {
       "target": "portable"

@@ -4,3 +4,5 @@ dist_new/
 dist_v*/
 make-icon.js
 *.log
+# AI model file is too large for git - place manually in ai/
+ai/model.gguf

@@ -6,22 +6,27 @@ const path = require('path');
 const fs = require('fs');
 // Import http module for making HTTP requests to local llama.cpp server
 const http = require('http');
-// Import https module for downloading files over HTTPS
-const https = require('https');
-// Import child_process spawn for running llama.cpp as a subprocess
+// Import child_process spawn for running llama.cpp server as a subprocess
 const { spawn } = require('child_process');
 
 // Path to the notes JSON file stored in user's appData directory
 const notesPath = path.join(app.getPath('userData'), 'notes.json');
 // Path to the theme preference JSON file
 const themePath = path.join(app.getPath('userData'), 'theme.json');
-// Directory where llama.cpp binaries and GGUF model are stored
-const aiDir = path.join(app.getPath('userData'), 'ai');
-// Path to the GGUF model file (Qwen2.5 0.5B Instruct, 4-bit quantized)
-const modelPath = path.join(aiDir, 'qwen2.5-0.5b-instruct-q4_k_m.gguf');
-// Path to the llama.cpp server binary
-const serverPath = path.join(aiDir, 'llama-server.exe');
-// llama.cpp server port
+
+// Resolves path to bundled ai/ files (dev: __dirname/ai, prod: resources/ai)
+function getAiPath(file) {
+  const dir = app.isPackaged
+    ? path.join(process.resourcesPath, 'ai')
+    : path.join(__dirname, 'ai');
+  return path.join(dir, file);
+}
+
+// Path to the bundled llama.cpp server binary
+const serverPath = getAiPath('llama-server.exe');
+// Path to the bundled GGUF model file
+const modelPath = getAiPath('model.gguf');
+// Port for the local llama.cpp server
 const LLAMA_PORT = 8080;
 
 // Reference to the main BrowserWindow instance
@@ -63,37 +68,7 @@ function isServerRunning() {
   });
 }
 
-// Downloads a file from a URL and saves it to disk
-function downloadFile(url, dest) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    https.get(url, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        https.get(res.headers.location, (r2) => {
-          if (r2.statusCode !== 200) { reject(new Error('Download failed: ' + r2.statusCode)); return; }
-          r2.pipe(file); file.on('finish', () => { file.close(); resolve(); });
-        }).on('error', reject);
-        return;
-      }
-      if (res.statusCode !== 200) { reject(new Error('Download failed: ' + res.statusCode)); return; }
-      res.pipe(file); file.on('finish', () => { file.close(); resolve(); });
-    }).on('error', reject);
-  });
-}
-
-// Extracts a zip file to a destination directory using PowerShell
-function extractZip(zipPath, destDir) {
-  return new Promise((resolve, reject) => {
-    const proc = spawn('powershell', [
-      '-Command',
-      `Expand-Archive -Path "${zipPath}" -DestinationPath "${destDir}" -Force`
-    ], { stdio: 'ignore' });
-    proc.on('close', (code) => code === 0 ? resolve() : reject(new Error('Extract failed: ' + code)));
-    proc.on('error', reject);
-  });
-}
-
-// Starts llama.cpp server and waits for it to be ready
+// Starts the bundled llama.cpp server and waits for it to be ready
 function startServer() {
   return new Promise((resolve) => {
     const proc = spawn(serverPath, [
@@ -110,43 +85,6 @@ function startServer() {
       if (await isServerRunning()) { clearInterval(iv); resolve(true); }
       else if (waited > 30000) { clearInterval(iv); resolve(false); }
     }, 1000);
-  });
-}
-
-// Downloads the GGUF model from HuggingFace with progress reporting
-function downloadModel() {
-  return new Promise((resolve, reject) => {
-    const MODEL_URL = 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf';
-    const file = fs.createWriteStream(modelPath);
-    let lastPct = '';
-    aiStatus = { stage: 'pulling', detail: 'Downloading AI model...' };
-    sendAIStatus();
-    https.get(MODEL_URL, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        https.get(res.headers.location, (r2) => {
-          if (r2.statusCode !== 200) { reject(new Error('Download failed')); return; }
-          const total = parseInt(r2.headers['content-length'] || '0', 10);
-          let downloaded = 0;
-          r2.on('data', (chunk) => {
-            downloaded += chunk.length;
-            if (total) {
-              const pct = Math.round((downloaded / total) * 100);
-              if (pct !== lastPct) {
-                lastPct = pct;
-                aiStatus = { stage: 'pulling', detail: pct + '% (' + Math.round(downloaded / 1048576) + 'MB)' };
-                sendAIStatus();
-              }
-            }
-          });
-          r2.pipe(file);
-          file.on('finish', () => { file.close(); resolve(); });
-        }).on('error', reject);
-        return;
-      }
-      if (res.statusCode !== 200) { reject(new Error('Download failed: ' + res.statusCode)); return; }
-      res.pipe(file);
-      file.on('finish', () => { file.close(); resolve(); });
-    }).on('error', reject);
   });
 }
 
@@ -181,7 +119,7 @@ function callLlama(prompt) {
   });
 }
 
-// Main orchestration: ensures llama.cpp binaries, GGUF model, and server are ready
+// Ensures bundled files exist, then starts the llama.cpp server
 async function ensureAI() {
   try {
     if (await isServerRunning()) {
@@ -190,37 +128,17 @@ async function ensureAI() {
       return;
     }
 
-    // Ensure the ai directory exists
-    try { fs.mkdirSync(aiDir, { recursive: true }); } catch (_) {}
-
-    // Download llama.cpp binaries if server binary missing
     if (!fs.existsSync(serverPath)) {
-      aiStatus = { stage: 'installing', detail: 'Downloading llama.cpp...' };
-      sendAIStatus();
-      const tmpDir = app.getPath('temp');
-      const zipPath = path.join(tmpDir, 'llama-cpp.zip');
-      try { fs.unlinkSync(zipPath); } catch (_) {}
-      await downloadFile('https://github.com/ggml-ai/llama.cpp/releases/download/b3841/llama-b3841-bin-win-avx2-x64.zip', zipPath);
-      aiStatus = { stage: 'installing', detail: 'Extracting binaries...' };
-      sendAIStatus();
-      await extractZip(zipPath, aiDir);
+      throw new Error('llama-server.exe not found in ' + path.dirname(serverPath) + ' - reinstall the app');
     }
-
-    // Verify server binary exists after download/extraction
-    if (!fs.existsSync(serverPath)) {
-      throw new Error('llama-server.exe not found after extraction');
-    }
-
-    // Download GGUF model if missing
     if (!fs.existsSync(modelPath)) {
-      await downloadModel();
+      throw new Error('model.gguf not found in ' + path.dirname(modelPath) + ' - reinstall the app');
     }
 
-    // Start the llama.cpp server
     aiStatus = { stage: 'starting', detail: 'Starting AI server...' };
     sendAIStatus();
     const started = await startServer();
-    if (!started) throw new Error('Failed to start llama.cpp server');
+    if (!started) throw new Error('AI server failed to start');
 
     aiStatus = { stage: 'ready', detail: '' };
     sendAIStatus();
