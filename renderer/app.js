@@ -26,8 +26,10 @@
   const newNoteBtn = document.getElementById('newNoteBtn');
   // DOM reference: status bar text at bottom of editor
   const editorStatus = document.getElementById('editorStatus');
-  // DOM reference: "Fix" button for AI text correction
-  const fixBtn = document.getElementById('fixBtn');
+  // DOM references for the contextual formatting suggestion
+  const formatSuggestion = document.getElementById('formatSuggestion');
+  const suggestFormatBtn = document.getElementById('suggestFormatBtn');
+  const dismissSuggestionBtn = document.getElementById('dismissSuggestionBtn');
   // DOM reference: theme toggle button in sidebar
   const themeToggle = document.getElementById('themeToggle');
   // DOM reference: Lottie animation container for theme transition
@@ -187,6 +189,11 @@
   function selectNote(id, animate) {
     // Skip if already viewing this note
     if (id === activeNoteId) return;
+    if (proofreadTimer !== null) {
+      clearTimeout(proofreadTimer);
+      proofreadTimer = null;
+    }
+    proofreadRequest++;
     // Save any unsaved changes in the current note first
     saveCurrentNoteImmediate();
     // Update active note tracker
@@ -210,6 +217,7 @@
     setStatus('');
     // Trigger auto-title generation if the note has content but no title
     maybeGenerateTitle();
+    scheduleFormatSuggestion();
   }
 
   // Restarts the fade-in animation on the editor panel
@@ -247,7 +255,7 @@
 
   // Updates the Fix button disabled state based on AI and note readiness
   function updateFixBtn() {
-    fixBtn.disabled = !aiReady || aiBusy || !activeNoteId;
+    suggestFormatBtn.disabled = !aiReady || aiBusy || !activeNoteId;
   }
 
   // Handles clicking the Fix button to run AI spelling/formatting correction
@@ -255,18 +263,22 @@
     // Prevent action if AI isn't ready, already busy, or no note selected
     if (!aiReady || aiBusy || !activeNoteId) return;
     const note = notes.find(n => n.id === activeNoteId);
-    if (!note || !note.content.trim()) return;
+    if (!note) return;
+    // Read from the editor directly — it is the source of truth
+    const currentText = contentInput.value;
+    if (!currentText.trim()) return;
     // Mark AI as busy and update button state
     aiBusy = true;
     updateFixBtn();
-    fixBtn.textContent = '...'; // Show progress indicator
+    suggestFormatBtn.textContent = '...'; // Show progress indicator
     setStatus('Fixing...');
     // Call the main process to fix text via local llama.cpp model
-    window.api.ai.fixText(note.content).then((fixed) => {
+    window.api.ai.fixText(titleInput.value, currentText).then((fixed) => {
       // Only apply changes if AI returned something different
-      if (fixed && fixed !== note.content) {
-        note.content = fixed;
+      if (fixed && fixed !== currentText) {
+        // Update the editor first, then sync the note object from it
         contentInput.value = fixed;
+        note.content = fixed;
         note.updatedAt = Date.now();
         queueFileSave();
         updateActiveNoteItem();
@@ -279,7 +291,7 @@
     }).finally(() => {
       // Always reset busy state and restore button
       aiBusy = false;
-      fixBtn.textContent = 'Fix';
+      suggestFormatBtn.textContent = 'Suggest';
       updateFixBtn();
     });
   }
@@ -294,6 +306,7 @@
       if (editorStatus.textContent === '' || editorStatus.textContent.startsWith('AI:')) {
         setStatus('');
       }
+      scheduleAutoProofread();
     } else if (status.stage === 'error') {
       // AI setup failed - keep features disabled
       aiReady = false;
@@ -315,6 +328,55 @@
 
   // Timer reference for auto-title generation (debounced)
   let titleGenTimer = null;
+  // Timer and request token for automatic spellchecking after typing pauses
+  let proofreadTimer = null;
+  let proofreadRequest = 0;
+
+  function scheduleAutoProofread() {
+    if (proofreadTimer !== null) clearTimeout(proofreadTimer);
+    const requestId = ++proofreadRequest;
+    if (!aiReady || !activeNoteId || !contentInput.value.trim()) return;
+
+    proofreadTimer = setTimeout(() => {
+      proofreadTimer = null;
+      const note = notes.find(n => n.id === activeNoteId);
+      const sourceTitle = titleInput.value;
+      const sourceText = contentInput.value;
+      if (!note || !sourceText.trim()) return;
+
+      window.api.ai.proofreadText(sourceTitle, sourceText).then((corrected) => {
+        // Never overwrite text that changed while the request was running.
+        if (requestId !== proofreadRequest || activeNoteId !== note.id ||
+            titleInput.value !== sourceTitle || contentInput.value !== sourceText) return;
+        if (corrected && corrected !== sourceText) {
+          contentInput.value = corrected;
+          note.content = corrected;
+          note.updatedAt = Date.now();
+          queueFileSave();
+          updateActiveNoteItem();
+          setStatus('Spelling fixed');
+        }
+      }).catch(() => {});
+    }, 1400);
+  }
+
+  function hideFormatSuggestion() {
+    formatSuggestion.hidden = true;
+  }
+
+  function scheduleFormatSuggestion() {
+    hideFormatSuggestion();
+    if (!aiReady || !activeNoteId || !contentInput.value.trim()) return;
+    const title = titleInput.value.toLowerCase();
+    const lines = contentInput.value.split(/\r?\n/).filter(line => line.trim());
+    const listTitle = /\b(list|shopping|grocer|todo|task|checklist|errand|ingredient|packing|wishlist)\b/.test(title);
+    const markedLines = lines.filter(line => /^\s*(?:[-*+•]|\d+[.)])\s+/.test(line));
+    const listLike = listTitle || markedLines.length >= 2 ||
+      (lines.length >= 3 && lines.every(line => line.trim().length <= 80 && !/[.!?]$/.test(line.trim())));
+    if (!listLike) return;
+    formatSuggestion.hidden = false;
+    updateFixBtn();
+  }
 
   // Automatically generates a title if the note has content but no title
   function maybeGenerateTitle() {
@@ -446,7 +508,8 @@
     // Theme toggle button
     themeToggle.addEventListener('click', toggleTheme);
     // AI fix button for spelling/formatting
-    fixBtn.addEventListener('click', handleFixClick);
+    suggestFormatBtn.addEventListener('click', handleFixClick);
+    dismissSuggestionBtn.addEventListener('click', hideFormatSuggestion);
 
     // Custom titlebar window control buttons
     document.getElementById('minBtn').addEventListener('click', () => window.api.window.minimize());
@@ -465,6 +528,7 @@
       if (note) { note.title = titleInput.value; note.updatedAt = Date.now(); }
       queueFileSave();
       updateActiveNoteItem();
+      scheduleFormatSuggestion();
     });
 
     // Content input - save on each keystroke and trigger auto-title generation
@@ -473,7 +537,9 @@
       if (note) { note.content = contentInput.value; note.updatedAt = Date.now(); }
       queueFileSave();
       updateActiveNoteItem();
+      scheduleFormatSuggestion();
       maybeGenerateTitle();
+      scheduleAutoProofread();
     });
 
     // Click on a note item in the sidebar selects it
@@ -523,6 +589,10 @@
       if (titleGenTimer !== null) {
         clearTimeout(titleGenTimer);
         titleGenTimer = null;
+      }
+      if (proofreadTimer !== null) {
+        clearTimeout(proofreadTimer);
+        proofreadTimer = null;
       }
       // Perform final save if one is queued
       if (saveQueued) {
@@ -580,8 +650,8 @@
       }
       // Set up all event listeners
       setupEventListeners();
-      // Disable Fix button until AI setup completes
-      fixBtn.disabled = true;
+      // Disable the contextual formatting action until AI setup completes
+      suggestFormatBtn.disabled = true;
       // Get initial AI setup status
       window.api.ai.getStatus().then(handleAIStatus);
       // Subscribe to ongoing AI status updates

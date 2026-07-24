@@ -346,6 +346,7 @@ main {
 /* Editor panel: flex column with title, content, and status footer */
 #editor {
   flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 16px 20px;
@@ -418,7 +419,7 @@ main {
   background: var(--scrollbar-track);
 }
 
-/* Editor footer bar: status text on left, Fix button on right */
+/* Editor footer bar */
 #editorFooter {
   display: flex;
   align-items: center;
@@ -433,34 +434,59 @@ main {
   color: var(--text-muted);
 }
 
-/* AI Fix button: subtle style that doesn't distract from editing */
-#fixBtn {
-  font-size: 11px;
-  padding: 2px 10px;
+/* Contextual formatting suggestion, positioned near the middle-right of the editor */
+.format-suggestion {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 10px 10px 13px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
+  border-radius: 18px 0 0 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  z-index: 5;
+  transform-origin: right center;
+  animation: suggestionIn 0.46s cubic-bezier(0.22, 1.18, 0.36, 1) both;
+}
+
+.format-suggestion[hidden] { display: none; }
+
+.format-suggestion-copy {
+  font-size: 12px;
   color: var(--text-secondary);
+}
+
+#suggestFormatBtn {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
-  border-radius: 3px;
-  transition: background 0.15s, color 0.15s;
-  opacity: 0.7;
 }
 
-/* Fix button hover: more visible */
-#fixBtn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  opacity: 1;
+#suggestFormatBtn:hover { opacity: 0.82; }
+#suggestFormatBtn:disabled { opacity: 0.5; cursor: default; }
+
+.suggestion-dismiss {
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
 }
 
-/* Fix button pressed state */
-#fixBtn:active {
-  transform: scale(0.97);
-}
-
-/* Fix button disabled: faded and non-interactive */
-#fixBtn:disabled {
-  opacity: 0.3;
-  cursor: default;
-  pointer-events: none;
+@keyframes suggestionIn {
+  0% { opacity: 0; transform: translateX(34px) translateY(-50%) scale(0.78); border-radius: 28px 0 0 28px; }
+  55% { opacity: 1; transform: translateX(-5px) translateY(-50%) scale(1.03); border-radius: 22px 0 0 22px; }
+  78% { transform: translateX(2px) translateY(-50%) scale(0.99); }
+  100% { opacity: 1; transform: translateX(0) translateY(-50%) scale(1); border-radius: 18px 0 0 18px; }
 }

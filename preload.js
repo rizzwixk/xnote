@@ -26,8 +26,10 @@ contextBridge.exposeInMainWorld('api', {
   },
   // AI features - local llama.cpp integration for text processing
   ai: {
-    // Send text to llama.cpp for spelling/formatting correction
-    fixText: (text) => ipcRenderer.invoke('ai:fix-text', text),
+    // Format a note using its title and content as context
+    fixText: (title, text) => ipcRenderer.invoke('ai:fix-text', { title, text }),
+    // Automatically correct only obvious spelling and punctuation mistakes
+    proofreadText: (title, text) => ipcRenderer.invoke('ai:proofread-text', { title, text }),
     // Generate a note title from content using local AI model
     generateTitle: (content) => ipcRenderer.invoke('ai:generate-title', content),
     // Poll current AI setup status (checking/installing/ready/error)

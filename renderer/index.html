@@ -47,9 +47,13 @@
       <section id="editor">
         <input id="titleInput" type="text" placeholder="Note title..." /> <!-- Note title input field -->
         <textarea id="contentInput" placeholder="Write your note here..."></textarea> <!-- Note content textarea -->
+        <div id="formatSuggestion" class="format-suggestion" role="status" aria-live="polite" hidden>
+          <div class="format-suggestion-copy">Want to tidy the format?</div>
+          <button id="suggestFormatBtn" type="button">Suggest</button>
+          <button id="dismissSuggestionBtn" class="suggestion-dismiss" type="button" aria-label="Dismiss formatting suggestion">×</button>
+        </div>
         <div id="editorFooter"> <!-- Editor footer bar -->
           <div id="editorStatus"></div> <!-- Status messages (save confirmations, AI progress) -->
-          <button id="fixBtn" title="Fix spelling and formatting">Fix</button> <!-- AI spell/format fix button -->
         </div>
       </section>
     </main>
