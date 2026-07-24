@@ -1,23 +1,26 @@
+/* Universal reset: remove default margins, padding, use border-box sizing */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* CSS custom properties for the default dark theme */
 :root {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #222222;
-  --bg-tertiary: #2a2a2a;
-  --bg-hover: #333333;
-  --text-primary: #e0e0e0;
-  --text-secondary: #999999;
-  --text-muted: #666666;
-  --border: #333333;
-  --accent: #888888;
-  --scrollbar-thumb: #444444;
-  --scrollbar-track: #1a1a1a;
+  --bg-primary: #1a1a1a;      /* Main background (darkest) */
+  --bg-secondary: #222222;    /* Sidebar and secondary panels */
+  --bg-tertiary: #2a2a2a;     /* Buttons and hover states */
+  --bg-hover: #333333;        /* Hover highlight background */
+  --text-primary: #e0e0e0;    /* Main text color (light gray) */
+  --text-secondary: #999999;  /* Secondary/label text */
+  --text-muted: #666666;      /* Muted text (status, placeholders) */
+  --border: #333333;          /* Default border color */
+  --accent: #888888;          /* Focus/highlight accent */
+  --scrollbar-thumb: #444444; /* Scrollbar handle color */
+  --scrollbar-track: #1a1a1a; /* Scrollbar track color */
 }
 
+/* Light theme overrides - applied when body has 'light' class */
 body.light {
   --bg-primary: #d0d0d0;
   --bg-secondary: #dcdcdc;
@@ -32,6 +35,7 @@ body.light {
   --scrollbar-track: #dcdcdc;
 }
 
+/* Base html/body: full height, no overflow, system font stack */
 html, body {
   height: 100%;
   overflow: hidden;
@@ -40,11 +44,13 @@ html, body {
   color: var(--text-primary);
 }
 
+/* Body uses flex column layout for titlebar + app content */
 body {
   display: flex;
   flex-direction: column;
 }
 
+/* Custom titlebar: macOS-style with drag region for window moving */
 #titlebar {
   display: flex;
   align-items: center;
@@ -53,11 +59,12 @@ body {
   padding: 0 0 0 16px;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border);
-  -webkit-app-region: drag;
-  user-select: none;
-  flex-shrink: 0;
+  -webkit-app-region: drag; /* Allows dragging the window */
+  user-select: none;         /* Prevent text selection while dragging */
+  flex-shrink: 0;            /* Prevent titlebar from shrinking */
 }
 
+/* App logo in titlebar */
 #titlebarTitle {
   height: 24px;
   width: auto;
@@ -65,14 +72,16 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
+/* Window control buttons container (no-drag so buttons work) */
 #titlebarControls {
   display: flex;
   align-items: center;
   gap: 8px;
   padding-right: 12px;
-  -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag; /* Buttons must be clickable */
 }
 
+/* Individual titlebar button (traffic light style) */
 .titlebar-btn {
   display: flex;
   align-items: center;
@@ -80,34 +89,40 @@ body {
   width: 12px;
   height: 12px;
   border: none;
-  border-radius: 50%;
+  border-radius: 50%; /* Circular buttons like macOS */
   cursor: pointer;
-  transition: filter 0.15s, transform 0.1s;
-  svg { opacity: 0; }
+  transition: filter 0.15s, transform 0.1s; /* Smooth hover effect */
+  svg { opacity: 0; } /* Icon hidden by default, shown on hover */
 }
 
+/* Hover state: brighten button and show the inner icon */
 .titlebar-btn:hover {
   filter: brightness(0.85);
   transform: scale(1.1);
-  svg { opacity: 1; }
+  svg { opacity: 1; } /* Reveal the button icon on hover */
 }
 
+/* Active/pressed state: slight shrink for tactile feedback */
 .titlebar-btn:active {
   transform: scale(0.95);
 }
 
+/* Red close button (macOS style) */
 .mac-close {
   background: #cc4c45;
 }
 
+/* Yellow minimize button (macOS style) */
 .mac-min {
   background: #cc9a25;
 }
 
+/* Green maximize button (macOS style) */
 .mac-max {
   background: #1f8c31;
 }
 
+/* App container fills remaining space below titlebar */
 #app {
   display: flex;
   flex-direction: column;
@@ -115,12 +130,14 @@ body {
   transition: opacity 0.15s ease;
 }
 
+/* Main layout: horizontal flex with sidebar and editor */
 main {
   display: flex;
   flex: 1;
   overflow: hidden;
 }
 
+/* Left sidebar: fixed width, secondary background */
 #sidebar {
   width: 220px;
   min-width: 180px;
@@ -130,6 +147,7 @@ main {
   overflow: hidden;
 }
 
+/* Sidebar header with new note button and theme toggle */
 #sidebarHeader {
   display: flex;
   align-items: center;
@@ -137,6 +155,7 @@ main {
   padding: 10px;
 }
 
+/* New Note button style */
 #newNoteBtn {
   flex: 1;
   padding: 8px 12px;
@@ -149,14 +168,17 @@ main {
   transition: background 0.15s, transform 0.1s;
 }
 
+/* New Note button hover state */
 #newNoteBtn:hover {
   background: var(--bg-hover);
 }
 
+/* New Note button pressed state */
 #newNoteBtn:active {
   transform: scale(0.97);
 }
 
+/* Theme toggle button container */
 #themeToggle {
   display: flex;
   align-items: center;
@@ -173,24 +195,27 @@ main {
   flex-shrink: 0;
 }
 
+/* Theme toggle hover state */
 #themeToggle:hover {
   background: var(--bg-hover);
 }
 
+/* Theme toggle pressed state */
 #themeToggle:active {
   transform: scale(0.97);
 }
 
+/* Lottie animation container inside theme toggle */
 #lottieContainer {
   width: 24px;
   height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  pointer-events: none; /* Let clicks pass through to parent button */
 }
 
-
+/* Note list: scrollable list of note items */
 #noteList {
   list-style: none;
   flex: 1;
@@ -198,19 +223,23 @@ main {
   padding: 0 8px;
 }
 
+/* Custom scrollbar for note list */
 #noteList::-webkit-scrollbar {
   width: 6px;
 }
 
+/* Scrollbar thumb/handle */
 #noteList::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
+/* Scrollbar track */
 #noteList::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
 
+/* Individual note item in sidebar */
 .note-item {
   padding: 10px 12px;
   margin-bottom: 4px;
@@ -218,12 +247,14 @@ main {
   cursor: pointer;
 }
 
+/* Animated state for slide-in effect on list refresh */
 .note-item.animate {
   opacity: 0;
   transform: translateX(-8px);
   animation: slideInItem 0.25s ease forwards;
 }
 
+/* Staggered animation delays for cascading entry effect */
 .note-item.animate:nth-child(1) { animation-delay: 0.02s; }
 .note-item.animate:nth-child(2) { animation-delay: 0.04s; }
 .note-item.animate:nth-child(3) { animation-delay: 0.06s; }
@@ -235,6 +266,7 @@ main {
 .note-item.animate:nth-child(9) { animation-delay: 0.18s; }
 .note-item.animate:nth-child(10) { animation-delay: 0.20s; }
 
+/* Keyframes for slide-in animation */
 @keyframes slideInItem {
   to {
     opacity: 1;
@@ -242,18 +274,22 @@ main {
   }
 }
 
+/* Hover highlight for note items */
 .note-item:hover {
   background: var(--bg-tertiary);
 }
 
+/* Active/selected note highlight */
 .note-item.active {
   background: var(--bg-tertiary);
 }
 
+/* Position relative required for delete tooltip positioning */
 .note-item {
   position: relative;
 }
 
+/* Note title text in sidebar */
 .note-item-title {
   font-size: 13px;
   font-weight: 500;
@@ -263,6 +299,7 @@ main {
   text-overflow: ellipsis;
 }
 
+/* Delete hint tooltip (hidden by default, shown on hover) */
 .note-delete-hint {
   display: none;
   position: absolute;
@@ -280,6 +317,7 @@ main {
   z-index: 10;
 }
 
+/* Tooltip arrow pointing down */
 .note-delete-hint::after {
   content: '';
   position: absolute;
@@ -290,10 +328,12 @@ main {
   border-top-color: var(--border);
 }
 
+/* Show delete hint on note hover */
 .note-item:hover .note-delete-hint {
   display: block;
 }
 
+/* Note content preview text in sidebar */
 .note-item-preview {
   font-size: 11px;
   color: var(--text-muted);
@@ -303,6 +343,7 @@ main {
   margin-top: 2px;
 }
 
+/* Editor panel: flex column with title, content, and status footer */
 #editor {
   flex: 1;
   display: flex;
@@ -312,11 +353,13 @@ main {
   animation: fadeIn 0.2s ease;
 }
 
+/* Fade-in animation for editor transitions */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Note title input: border-bottom style with focus effect */
 #titleInput {
   background: transparent;
   border: none;
@@ -330,14 +373,17 @@ main {
   transition: border-color 0.2s;
 }
 
+/* Focus state: accent border to indicate active input */
 #titleInput:focus {
   border-bottom-color: var(--accent);
 }
 
+/* Placeholder text color for title input */
 #titleInput::placeholder {
   color: var(--text-muted);
 }
 
+/* Note content textarea: fills remaining space, scrollable */
 #contentInput {
   flex: 1;
   background: transparent;
@@ -351,27 +397,70 @@ main {
   font-family: inherit;
 }
 
+/* Placeholder text color for content area */
 #contentInput::placeholder {
   color: var(--text-muted);
 }
 
+/* Custom scrollbar for content textarea */
 #contentInput::-webkit-scrollbar {
   width: 6px;
 }
 
+/* Scrollbar thumb for textarea */
 #contentInput::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
+/* Scrollbar track for textarea */
 #contentInput::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
 
+/* Editor footer bar: status text on left, Fix button on right */
+#editorFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+  min-height: 28px;
+}
+
+/* Status text in editor footer */
 #editorStatus {
   font-size: 11px;
   color: var(--text-muted);
-  text-align: right;
-  padding-top: 4px;
-  min-height: 18px;
+}
+
+/* AI Fix button: subtle style that doesn't distract from editing */
+#fixBtn {
+  font-size: 11px;
+  padding: 2px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+  opacity: 0.7;
+}
+
+/* Fix button hover: more visible */
+#fixBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+/* Fix button pressed state */
+#fixBtn:active {
+  transform: scale(0.97);
+}
+
+/* Fix button disabled: faded and non-interactive */
+#fixBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
 }
