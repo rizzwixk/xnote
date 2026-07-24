@@ -210,6 +210,12 @@
   <!-- Divider -->
   <line x1="100" y1="2890" x2="800" y2="2890" stroke="#222222" stroke-width="1"/>
 
+  <!-- Disclaimer -->
+  <rect x="100" y="2920" width="700" height="120" rx="8" fill="#111111" stroke="#333333" stroke-width="1"/>
+  <text x="450" y="2955" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555555" letter-spacing="3" text-anchor="middle" text-transform="uppercase">DISCLAIMER</text>
+  <text x="450" y="2985" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#888888" text-anchor="middle">This app is fully vibe coded. If that bothers you, it's probably not for you.</text>
+  <text x="450" y="3010" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#888888" text-anchor="middle">No tests. No CI. No type safety. Just vibes and a text editor.</text>
+
   <!-- Footer -->
   <text x="450" y="2960" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="800" fill="#ffffff" text-anchor="middle" opacity="0.08">xnote</text>
   <text x="450" y="3000" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#444444" text-anchor="middle">github.com/rizzwixk/xnote</text>
