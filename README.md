@@ -161,12 +161,6 @@ No tests. No CI. No type safety. Just vibes and a text editor.
 
 ---
 
-## License
-
-[MIT](LICENSE)
-
----
-
 <p align="center">
   <sub>Built with vibes and a text editor</sub>
 </p>
