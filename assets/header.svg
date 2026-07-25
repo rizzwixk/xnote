@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d0d0d"/>
+      <stop offset="50%" stop-color="#141414"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid pattern -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="0.3" opacity="0.05"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="300" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.03"/>
+  <circle cx="1100" cy="500" r="250" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.03"/>
+
+  <!-- Left accent line -->
+  <rect x="80" y="200" width="4" height="230" rx="2" fill="#ffffff" opacity="0.15"/>
+
+  <!-- Main title -->
+  <text x="120" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="-3">xnote</text>
+
+  <!-- Subtitle -->
+  <text x="120" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#888888" letter-spacing="1">Local AI notes app</text>
+
+  <!-- Description -->
+  <text x="120" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#555555">Fully offline. No cloud. No accounts. Just your notes and AI.</text>
+
+  <!-- Right side: feature pills -->
+  <rect x="700" y="200" width="120" height="36" rx="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.15"/>
+  <text x="760" y="223" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" opacity="0.6">Electron</text>
+
+  <rect x="840" y="200" width="120" height="36" rx="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.15"/>
+  <text x="900" y="223" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" opacity="0.6">llama.cpp</text>
+
+  <rect x="700" y="250" width="120" height="36" rx="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.15"/>
+  <text x="760" y="273" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" opacity="0.6">Granite 4.0</text>
+
+  <rect x="840" y="250" width="120" height="36" rx="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.15"/>
+  <text x="900" y="273" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" opacity="0.6">4 Themes</text>
+
+  <rect x="700" y="300" width="120" height="36" rx="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.15"/>
+  <text x="760" y="323" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" opacity="0.6">Vanilla JS</text>
+
+  <rect x="840" y="300" width="120" height="36" rx="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.15"/>
+  <text x="900" y="323" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" opacity="0.6">Elms Sans</text>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="628" width="1200" height="2" fill="#ffffff" opacity="0.08"/>
+
+  <!-- Version -->
+  <text x="1100" y="610" font-family="monospace" font-size="14" fill="#555555" text-anchor="end">v1.3.0</text>
+</svg>
