@@ -2,7 +2,8 @@
   <img src="assets/header.svg" alt="xnote" width="100%">
 </p>
 
-notice this app is discontinued and will no longer be developed
+
+> **NOTE:** this app is no longer being developed 
 
 <p align="center">
   <img src="https://img.shields.io/badge/Electron-28-blue?style=flat-square&logo=electron&logoColor=white" alt="Electron">
