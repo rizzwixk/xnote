@@ -2,6 +2,8 @@
   <img src="assets/header.svg" alt="xnote" width="100%">
 </p>
 
+notice this app is discontinued and will no longer be developed
+
 <p align="center">
   <img src="https://img.shields.io/badge/Electron-28-blue?style=flat-square&logo=electron&logoColor=white" alt="Electron">
   <img src="https://img.shields.io/badge/llama--cpp-b10099-ff991c?style=flat-square&logo=cpp&logoColor=white" alt="llama.cpp">
